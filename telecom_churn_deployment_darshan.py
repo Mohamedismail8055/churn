@@ -500,145 +500,6 @@ print(f"XGBoost Accuracy (with best hyperparameters): {accuracy_best_xgb}")
 print(classification_report(y_test, y_pred_best_xgb))
 print(confusion_matrix(y_test, y_pred_best_xgb))
 
-"""DECISION TREE MODEL"""
-
-from sklearn.tree import DecisionTreeClassifier
-# Initialize and train the decision tree model
-dtree = DecisionTreeClassifier(random_state=42)
-dtree.fit(X_train, y_train)
-
-# Make predictions on the test set
-y_pred_dtree = dtree.predict(X_test)
-
-# Evaluate the decision tree model
-accuracy_dtree = accuracy_score(y_test, y_pred_dtree)
-print(f"Decision Tree Accuracy: {accuracy_dtree}")
-print(classification_report(y_test, y_pred_dtree))
-print(confusion_matrix(y_test, y_pred_dtree))
-
-"""TUNED DECISION TREE MODEL"""
-
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
-# Expanded parameter grid
-param_grid = {
-    'criterion': ['gini', 'entropy', 'log_loss'],  # Adding 'log_loss' for newer scikit-learn versions
-    'splitter': ['best', 'random'],
-    'max_depth': [None, 10, 20, 30,35, 40,45, 50],
-    'min_samples_split': [2, 5, 10, 15, 20, 25, 30],
-    'min_samples_leaf': [1, 2,3, 4,5, 6, 8],
-    'max_features': [None, 'sqrt', 'log2'],
-    'class_weight': [None, 'balanced']
-}
-
-# Using RandomizedSearchCV for efficiency
-random_search = RandomizedSearchCV(
-    estimator=DecisionTreeClassifier(random_state=42),
-    param_distributions=param_grid,
-    n_iter=50,  # Number of random samples (adjust as needed)
-    cv=5,
-    scoring='accuracy',
-    n_jobs=-1,
-    verbose=2,
-    random_state=42
-)
-
-# Fit the RandomizedSearchCV object to the training data
-random_search.fit(X_train, y_train)
-
-# Get the best parameters and score
-best_params = random_search.best_params_
-best_score = random_search.best_score_
-
-print(f"Best hyperparameters: {best_params}")
-print(f"Best cross-validation score: {best_score}")
-
-# Train final Decision Tree model with best parameters
-best_dtree = DecisionTreeClassifier(**best_params, random_state=42)
-best_dtree.fit(X_train, y_train)
-
-# Evaluate on test data
-y_pred_best_dtree = best_dtree.predict(X_test)
-accuracy_best_dtree = accuracy_score(y_test, y_pred_best_dtree)
-
-print(f"Decision Tree Accuracy (with best hyperparameters): {accuracy_best_dtree}")
-print(classification_report(y_test, y_pred_best_dtree))
-print(confusion_matrix(y_test, y_pred_best_dtree))
-
-"""RANDOM FOREST MODEL"""
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
-# Initialize Random Forest classifier with default parameters
-rf_model = RandomForestClassifier(random_state=42)
-
-# Train the model
-rf_model.fit(X_train, y_train)
-
-# Make predictions on the test set
-y_pred_rf = rf_model.predict(X_test)
-
-# Evaluate the model
-accuracy_rf = accuracy_score(y_test, y_pred_rf)
-
-print(f"Random Forest Accuracy (Default Parameters): {accuracy_rf}")
-print(classification_report(y_test, y_pred_rf))
-print(confusion_matrix(y_test, y_pred_rf))
-
-"""TUNED RANDOM FOREST MODEL"""
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-
-# Define hyperparameter grid
-param_grid_rf = {
-    'n_estimators': [50, 100, 200, 300, 500],  # Number of trees
-    'max_depth': [None, 10, 20, 30, 40, 50],  # Tree depth
-    'min_samples_split': [2, 5, 10, 15, 20],  # Minimum samples to split
-    'min_samples_leaf': [1, 2, 4, 6, 8],  # Minimum samples per leaf
-    'class_weight': [None, 'balanced']  # Class balancing
-}
-
-# Initialize Random Forest classifier
-rf_model = RandomForestClassifier(random_state=42)
-
-# RandomizedSearchCV for faster tuning
-random_search_rf = RandomizedSearchCV(
-    estimator=rf_model,
-    param_distributions=param_grid_rf,
-    n_iter=50,  # Number of random trials
-    cv=5,
-    scoring='accuracy',
-    n_jobs=-1,  # Use all CPU cores
-    verbose=2,
-    random_state=42
-)
-
-# Fit the model
-random_search_rf.fit(X_train, y_train)
-
-# Best parameters and score
-best_params_rf = random_search_rf.best_params_
-best_score_rf = random_search_rf.best_score_
-
-print(f"Best hyperparameters for Random Forest: {best_params_rf}")
-print(f"Best cross-validation score: {best_score_rf}")
-
-# Train final Random Forest model with best parameters
-best_rf_model = RandomForestClassifier(**best_params_rf, random_state=42)
-best_rf_model.fit(X_train, y_train)
-
-# Evaluate on test data
-y_pred_best_rf = best_rf_model.predict(X_test)
-accuracy_best_rf = accuracy_score(y_test, y_pred_best_rf)
-
-print(f"Random Forest Accuracy (with best hyperparameters): {accuracy_best_rf}")
-print(classification_report(y_test, y_pred_best_rf))
-print(confusion_matrix(y_test, y_pred_best_rf))
 
 """GRADIENT BOOSTING MODEL"""
 
@@ -724,20 +585,22 @@ y_pred_gb
 !pip install pandas
 !pip install pickle
 !pip install numpy
+!pip install xgboost
+
 
 import streamlit as st
 import pandas as pd
 import pickle
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
+import xgboost as xgb
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.preprocessing import LabelEncoder
 import os
 
 # Load dataset
 def load_data():
-    df = pd.read_excel("Churn (1).xlsx")
+    df = pd.read_excel("Churn1.xlsx")
     df = df.iloc[:, 1:]  # Drop index column
     df = df.drop("state", axis=1)  # Drop categorical column for simplicity
     return df
@@ -758,9 +621,9 @@ def train_models():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     models = {
-        "RandomForest": RandomForestClassifier(),
+        "Tuned gradient boosting( highest accuracy)": GradientBoostingClassifier(),
         "LogisticRegression": LogisticRegression(max_iter=1000),
-        "DecisionTree": DecisionTreeClassifier()
+        "Tuned xgboost": xgb()
     }
 
     for name, model in models.items():
