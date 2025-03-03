@@ -363,9 +363,16 @@ voice.messages:    0.032908
 """
 
 # Splitting into X and y based on RFE most relevant features, although i can choose mutual info score or nonlinear pattern, i selected rfe for feature selection
-X_rfe_selected = normalised_df[['area.code', 'voice.plan', 'voice.messages', 'intl.mins', 'intl.calls',
-       'day.mins', 'day.charge', 'eve.charge', 'night.charge',
-       'customer.calls']]
+X_rfe_selected = normalised_df[['day.mins',
+ 'customer.calls',
+ 'eve.mins',
+ 'voice.plan',
+ 'night.mins',
+ 'account.length',
+ 'intl.mins',
+ 'night.calls',
+ 'day.calls',
+ 'eve.calls']]
 y = normalised_df['churn']
 
 X_rfe_selected.head()
